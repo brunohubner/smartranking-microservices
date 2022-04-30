@@ -62,4 +62,17 @@ export class AppService {
             throw new RpcException(error.message)
         }
     }
+
+    async updateCategory(_id: string, category: Category): Promise<Category> {
+        const categoryExists = await this.findCategoryById(_id)
+
+        if (category?.description) {
+            categoryExists.description = category.description
+        }
+        category?.events?.length &&
+            categoryExists.events.push(...category.events)
+
+        await categoryExists.save()
+        return categoryExists
+    }
 }

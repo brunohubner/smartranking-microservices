@@ -3,6 +3,7 @@ import {
     Controller,
     Get,
     Param,
+    Patch,
     Post,
     UsePipes,
     ValidationPipe
@@ -15,6 +16,7 @@ import {
 import { Observable } from "rxjs"
 import { env } from "./config/env"
 import { CreateCategoryDto } from "./dtos/create-category.dto"
+import { UpdateCategoryDto } from "./dtos/update-category.dto"
 
 @Controller("api/v1")
 export class AppController {
@@ -35,7 +37,7 @@ export class AppController {
     createCategory(
         @Body() createCategoryDto: CreateCategoryDto
     ): Observable<any> {
-        return this.clientAdminBackend.emit(
+        return this.clientAdminBackend.send(
             "create-category",
             createCategoryDto
         )
@@ -51,5 +53,17 @@ export class AppController {
     @UsePipes(ValidationPipe)
     findCategoryById(@Param("_id") _id: string): Observable<any> {
         return this.clientAdminBackend.send("find-category-by-id", _id)
+    }
+
+    @Patch("categories/:_id")
+    @UsePipes(ValidationPipe)
+    updateCategory(
+        @Param("_id") _id: string,
+        @Body() updateCategoryDto: UpdateCategoryDto
+    ): Observable<any> {
+        return this.clientAdminBackend.send("update-category", {
+            _id,
+            category: updateCategoryDto
+        })
     }
 }

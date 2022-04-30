@@ -1,22 +1,18 @@
 import { Module } from "@nestjs/common"
 import { MongooseModule } from "@nestjs/mongoose"
-import { AppController } from "./app.controller"
-import { AppService } from "./app.service"
-import { env } from "./config/env"
-import { CategorySchema } from "./interfaces/categories/category.schema"
-import { PlayerSchema } from "./interfaces/players/player.shema"
+import { CategoriesModule } from "./categories/categories.module"
+import { env } from "./common/config/env"
+import { PlayersModule } from "./players/players.module"
 
 @Module({
     imports: [
         MongooseModule.forRootAsync({
             useFactory: () => ({ uri: env.DATABASE_URL })
         }),
-        MongooseModule.forFeature([
-            { name: "Category", schema: CategorySchema },
-            { name: "Player", schema: PlayerSchema }
-        ])
+        // PlayersModule,
+        CategoriesModule
     ],
-    controllers: [AppController],
-    providers: [AppService]
+    controllers: [],
+    providers: []
 })
 export class AppModule {}

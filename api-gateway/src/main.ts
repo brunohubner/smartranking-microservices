@@ -1,9 +1,9 @@
 import { NestFactory } from "@nestjs/core"
 import { AppModule } from "./app.module"
 import momentTimezone from "moment-timezone"
-import { AllExceptionsFilter } from "./filters/http-exception.filter"
-import { env } from "./config/env"
-import { TimeoutInterceptor } from "./interceptors/timeout.interceptor"
+import { AllExceptionsFilter } from "./common/filters/http-exception.filter"
+import { env } from "./common/config/env"
+import { TimeoutInterceptor } from "./common/interceptors/timeout.interceptor"
 import { Logger } from "@nestjs/common"
 
 const logger = new Logger("Main")

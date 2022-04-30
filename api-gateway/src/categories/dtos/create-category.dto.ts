@@ -1,6 +1,6 @@
 import { ArrayMinSize, IsArray, IsNotEmpty, IsString } from "class-validator"
 import { ApiProperty } from "@nestjs/swagger"
-import { Event } from "src/interfaces/event.interface"
+import { Event } from "src/categories/interfaces/event.interface"
 
 export class CreateCategoryDto {
     @ApiProperty()

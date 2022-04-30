@@ -7,4 +7,5 @@ export interface Player extends Document {
     ranking: string
     rankingPosition: number
     urlAvatarPlayer: string
+    category_id: string
 }

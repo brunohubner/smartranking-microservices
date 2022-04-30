@@ -1,22 +1,19 @@
 import { Injectable, Logger } from "@nestjs/common"
 import { InjectModel } from "@nestjs/mongoose"
-import { Category } from "./interfaces/categories/category.interface"
-import { Player } from "./interfaces/players/player.interface"
 import { Model } from "mongoose"
 import { RpcException } from "@nestjs/microservices"
+import { Category } from "./interfaces/category.interface"
 
 @Injectable()
-export class AppService {
-    private readonly logger = new Logger(AppService.name)
+export class CategoriesService {
+    private readonly logger = new Logger(CategoriesService.name)
 
     constructor(
         @InjectModel("Category")
-        private readonly categoryModel: Model<Category>,
-        @InjectModel("Player")
-        private readonly playersModel: Model<Player>
+        private readonly categoryModel: Model<Category>
     ) {}
 
-    async createCategory(category: Category): Promise<Category> {
+    async create(category: Category): Promise<Category> {
         try {
             const categoryExists = await this.categoryModel.findOne({
                 name: category.name
@@ -37,7 +34,7 @@ export class AppService {
         }
     }
 
-    async findAllCategories(): Promise<Category[]> {
+    async findAll(): Promise<Category[]> {
         try {
             return this.categoryModel.find().populate("players")
         } catch (error) {
@@ -46,7 +43,7 @@ export class AppService {
         }
     }
 
-    async findCategoryById(_id: string): Promise<Category> {
+    async findById(_id: string): Promise<Category> {
         try {
             const category = await this.categoryModel
                 .findById(_id)
@@ -63,8 +60,8 @@ export class AppService {
         }
     }
 
-    async updateCategory(_id: string, category: Category): Promise<Category> {
-        const categoryExists = await this.findCategoryById(_id)
+    async update(_id: string, category: Category): Promise<Category> {
+        const categoryExists = await this.findById(_id)
 
         if (category?.description) {
             categoryExists.description = category.description

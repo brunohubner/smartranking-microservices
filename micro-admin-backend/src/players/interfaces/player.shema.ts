@@ -7,7 +7,12 @@ export const PlayerSchema = new mongoose.Schema(
         name: { type: String, required: true },
         ranking: String,
         rankingPosition: Number,
-        urlAvatarPlayer: String
+        urlAvatarPlayer: String,
+        category_id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Category",
+            required: true
+        }
     },
     {
         timestamps: true,

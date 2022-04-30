@@ -3,9 +3,14 @@ import { AppModule } from "./app.module"
 import momentTimezone from "moment-timezone"
 import { AllExceptionsFilter } from "./filters/http-exception.filter"
 import { env } from "./config/env"
+import { TimeoutInterceptor } from "./interceptors/timeout.interceptor"
+import { Logger } from "@nestjs/common"
+
+const logger = new Logger("Main")
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule)
+    app.useGlobalInterceptors(new TimeoutInterceptor())
     app.useGlobalFilters(new AllExceptionsFilter())
 
     Date.prototype.toJSON = function (): any {
@@ -14,6 +19,8 @@ async function bootstrap() {
             .format("YYYY-MM-DD HH:mm:ss.SSS")
     }
 
-    await app.listen(env.PORT)
+    await app
+        .listen(env.PORT)
+        .then(() => logger.log('"api-gateway" is listening...'))
 }
 bootstrap()

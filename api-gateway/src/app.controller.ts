@@ -12,6 +12,7 @@ import {
     ClientProxyFactory,
     Transport
 } from "@nestjs/microservices"
+import { Observable } from "rxjs"
 import { env } from "./config/env"
 import { CreateCategoryDto } from "./dtos/create-category.dto"
 
@@ -31,7 +32,9 @@ export class AppController {
 
     @Post("categories")
     @UsePipes(ValidationPipe)
-    createCategory(@Body() createCategoryDto: CreateCategoryDto) {
+    createCategory(
+        @Body() createCategoryDto: CreateCategoryDto
+    ): Observable<any> {
         return this.clientAdminBackend.emit(
             "create-category",
             createCategoryDto
@@ -40,13 +43,13 @@ export class AppController {
 
     @Get("categories")
     @UsePipes(ValidationPipe)
-    findAllCategories() {
+    findAllCategories(): Observable<any> {
         return this.clientAdminBackend.send("find-all-categories", "")
     }
 
     @Get("categories/:_id")
     @UsePipes(ValidationPipe)
-    findCategoryById(@Param("_id") _id: string) {
+    findCategoryById(@Param("_id") _id: string): Observable<any> {
         return this.clientAdminBackend.send("find-category-by-id", _id)
     }
 }

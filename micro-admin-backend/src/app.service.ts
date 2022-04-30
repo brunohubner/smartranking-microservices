@@ -29,6 +29,7 @@ export class AppService {
 
             const categoryCreated = new this.categoryModel(category)
             await categoryCreated.save()
+            this.logger.log(JSON.stringify(categoryCreated))
             return categoryCreated
         } catch (error) {
             this.logger.error(JSON.stringify(error))

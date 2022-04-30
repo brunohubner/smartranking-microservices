@@ -13,12 +13,13 @@ async function bootstrap() {
             transport: Transport.RMQ,
             options: {
                 urls: [env.RABBITMQ_URL_CONNECTION],
+                noAck: false,
                 queue: "admin-backend"
             }
         }
     )
     await app
         .listen()
-        .then(() => logger.log("Microservice Admin Backend is listening"))
+        .then(() => logger.log('Microservice "admin-backend" is listening...'))
 }
 bootstrap()

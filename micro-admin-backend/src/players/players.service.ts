@@ -55,7 +55,7 @@ export class PlayersService {
             const player = await this.playerModel.findById(_id)
             if (!player) {
                 throw new RpcException(
-                    `The player with ID ${_id} do not exists.`
+                    `The player with ID ${_id} does not exists.`
                 )
             }
             return player
@@ -70,7 +70,7 @@ export class PlayersService {
             const player = await this.playerModel.findOne({ email })
             if (!player) {
                 throw new RpcException(
-                    `The player with email ${email} do not exists.`
+                    `The player with email ${email} does not exists.`
                 )
             }
             return player

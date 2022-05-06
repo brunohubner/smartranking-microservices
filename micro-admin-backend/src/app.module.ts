@@ -9,7 +9,7 @@ import { PlayersModule } from "./players/players.module"
         MongooseModule.forRootAsync({
             useFactory: () => ({ uri: env.DATABASE_URL })
         }),
-        // PlayersModule,
+        PlayersModule,
         CategoriesModule
     ],
     controllers: [],

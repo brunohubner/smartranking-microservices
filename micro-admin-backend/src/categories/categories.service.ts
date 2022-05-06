@@ -50,7 +50,7 @@ export class CategoriesService {
                 .populate("players")
             if (!category) {
                 throw new RpcException(
-                    `The category with ID ${_id} do not exists.`
+                    `The category with ID ${_id} does not exists.`
                 )
             }
             return category

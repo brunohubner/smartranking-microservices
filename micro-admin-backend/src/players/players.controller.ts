@@ -79,6 +79,20 @@ export class PlayersController {
         }
     }
 
+    @MessagePattern("find-many-players")
+    async findMany(
+        @Payload() _ids: string[],
+        @Ctx() context: RmqContext
+    ): Promise<Player[]> {
+        const channel = context.getChannelRef()
+        const originalMessage = context.getMessage()
+        try {
+            return this.playersService.findMany(..._ids)
+        } finally {
+            await channel.ack(originalMessage)
+        }
+    }
+
     @MessagePattern("update-player")
     async update(
         @Payload() data: any,

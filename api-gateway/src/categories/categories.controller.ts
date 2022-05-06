@@ -9,7 +9,7 @@ import {
     ValidationPipe
 } from "@nestjs/common"
 import { Observable } from "rxjs"
-import { ClientProxyProvider } from "src/common/providers/client-proxy.provider"
+import { ClientProxyProvider } from "src/proxyrmq/client-proxy.provider"
 import { CreateCategoryDto } from "./dtos/create-category.dto"
 import { UpdateCategoryDto } from "./dtos/update-category.dto"
 

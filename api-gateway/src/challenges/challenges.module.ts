@@ -1,9 +1,9 @@
 import { Module } from "@nestjs/common"
 import { ProxyRMQModule } from "src/proxyrmq/proxyrmq.module"
-import { PlayersController } from "./players.controller"
+import { ChallengesController } from "./challenges.controller"
 
 @Module({
     imports: [ProxyRMQModule],
-    controllers: [PlayersController]
+    controllers: [ChallengesController]
 })
-export class PlayersModule {}
+export class ChallengesModule {}

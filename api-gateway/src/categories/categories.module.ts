@@ -1,11 +1,9 @@
 import { Module } from "@nestjs/common"
-import { ClientProxyProvider } from "src/common/providers/client-proxy.provider"
+import { ProxyRMQModule } from "src/proxyrmq/proxyrmq.module"
 import { CategoriesController } from "./categories.controller"
 
 @Module({
-    imports: [],
-    controllers: [CategoriesController],
-    providers: [ClientProxyProvider],
-    exports: []
+    imports: [ProxyRMQModule],
+    controllers: [CategoriesController]
 })
 export class CategoriesModule {}

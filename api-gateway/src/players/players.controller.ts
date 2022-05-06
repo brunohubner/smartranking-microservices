@@ -12,7 +12,7 @@ import {
 } from "@nestjs/common"
 import { Observable, firstValueFrom } from "rxjs"
 import { validateEmail } from "src/common/helpers/validateEmail"
-import { ClientProxyProvider } from "src/common/providers/client-proxy.provider"
+import { ClientProxyProvider } from "src/proxyrmq/client-proxy.provider"
 import { CreatePlayerDto } from "./dtos/create-player.dto"
 import { UpdatePlayerDto } from "./dtos/update-player.dto"
 
@@ -32,7 +32,7 @@ export class PlayersController {
         )
         if (!category) {
             throw new BadRequestException(
-                `The category with ID ${_id} do not exists.`
+                `The category with ID ${_id} does not exists.`
             )
         }
         return this.clientProxyProvider.adminBackend.send(
@@ -83,7 +83,7 @@ export class PlayersController {
             )
             if (!category) {
                 throw new BadRequestException(
-                    `The category with ID ${_id} do not exists.`
+                    `The category with ID ${_id} does not exists.`
                 )
             }
         }

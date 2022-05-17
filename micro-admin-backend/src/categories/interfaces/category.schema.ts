@@ -10,12 +10,6 @@ export const CategorySchema = new mongoose.Schema(
                 operation: { type: String, required: true },
                 value: { type: Number, required: true }
             }
-        ],
-        players: [
-            {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Player"
-            }
         ]
     },
     {

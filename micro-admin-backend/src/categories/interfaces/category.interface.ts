@@ -1,10 +1,8 @@
 import { Document } from "mongoose"
-import { Player } from "../../players/interfaces/player.interface"
 import { Event } from "./event.interface"
 
 export interface Category extends Document {
-    name: string
+    readonly name: string
     description: string
     events: Event[]
-    players: Player[]
 }

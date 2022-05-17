@@ -1,6 +1,7 @@
 import { Controller, Logger } from "@nestjs/common"
 import {
     Ctx,
+    EventPattern,
     MessagePattern,
     Payload,
     RmqContext,
@@ -17,20 +18,17 @@ export class CategoriesController {
 
     constructor(private readonly categoriesService: CategoriesService) {}
 
-    @MessagePattern("create-category")
+    @EventPattern("create-category")
     async create(
         @Payload() category: Category,
         @Ctx() context: RmqContext
-    ): Promise<Category> {
+    ): Promise<void> {
         const channel = context.getChannelRef()
         const originalMessage = context.getMessage()
 
         try {
-            const categoryCreated = await this.categoriesService.create(
-                category
-            )
+            await this.categoriesService.create(category)
             await channel.ack(originalMessage)
-            return categoryCreated
         } catch (error) {
             this.logger.error(JSON.stringify(error))
             ackErrors.forEach(async ackError => {
@@ -67,23 +65,33 @@ export class CategoriesController {
         }
     }
 
-    @MessagePattern("update-category")
+    @MessagePattern("find-category-by-name")
+    async findByName(
+        @Payload() name: string,
+        @Ctx() context: RmqContext
+    ): Promise<Category> {
+        const channel = context.getChannelRef()
+        const originalMessage = context.getMessage()
+        try {
+            return this.categoriesService.findByName(name)
+        } finally {
+            await channel.ack(originalMessage)
+        }
+    }
+
+    @EventPattern("update-category")
     async update(
         @Payload() data: any,
         @Ctx() context: RmqContext
-    ): Promise<Category> {
+    ): Promise<void> {
         const channel = context.getChannelRef()
         const originalMessage = context.getMessage()
 
         try {
             const _id = data._id
             const category: Category = data.category
-            const categoryUpdated = await this.categoriesService.update(
-                _id,
-                category
-            )
+            await this.categoriesService.update(_id, category)
             await channel.ack(originalMessage)
-            return categoryUpdated
         } catch (error) {
             this.logger.error(JSON.stringify(error))
             ackErrors.forEach(async ackError => {

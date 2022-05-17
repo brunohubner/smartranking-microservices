@@ -1,6 +1,7 @@
 import { Controller, Logger } from "@nestjs/common"
 import {
     Ctx,
+    EventPattern,
     MessagePattern,
     Payload,
     RmqContext,
@@ -9,7 +10,12 @@ import {
 import { Player } from "./interfaces/player.interface"
 import { PlayersService } from "./players.service"
 
-const ackErrors: string[] = ["already a player", "not exists", "ObjectId"]
+const ackErrors: string[] = [
+    "E11000",
+    "already a player",
+    "not exists",
+    "ObjectId"
+]
 
 @Controller()
 export class PlayersController {
@@ -17,18 +23,17 @@ export class PlayersController {
 
     constructor(private readonly playersService: PlayersService) {}
 
-    @MessagePattern("create-player")
+    @EventPattern("create-player")
     async create(
         @Payload() player: Player,
         @Ctx() context: RmqContext
-    ): Promise<Player> {
+    ): Promise<void> {
         const channel = context.getChannelRef()
         const originalMessage = context.getMessage()
 
         try {
-            const playerCreated = await this.playersService.create(player)
+            await this.playersService.create(player)
             await channel.ack(originalMessage)
-            return playerCreated
         } catch (error) {
             this.logger.error(JSON.stringify(error))
             ackErrors.forEach(async ackError => {
@@ -79,6 +84,24 @@ export class PlayersController {
         }
     }
 
+    @MessagePattern("find-player-by-email-or-phone-number")
+    async findByEmailOrPhoneNumber(
+        @Payload() data: any,
+        @Ctx() context: RmqContext
+    ): Promise<Player> {
+        const channel = context.getChannelRef()
+        const originalMessage = context.getMessage()
+        try {
+            return this.playersService.findDuplicated({
+                email: data?.email,
+                phoneNumber: data?.phoneNumber,
+                name: data?.name
+            })
+        } finally {
+            await channel.ack(originalMessage)
+        }
+    }
+
     @MessagePattern("find-many-players")
     async findMany(
         @Payload() _ids: string[],
@@ -93,20 +116,19 @@ export class PlayersController {
         }
     }
 
-    @MessagePattern("update-player")
+    @EventPattern("update-player")
     async update(
         @Payload() data: any,
         @Ctx() context: RmqContext
-    ): Promise<Player> {
+    ): Promise<void> {
         const channel = context.getChannelRef()
         const originalMessage = context.getMessage()
 
         try {
             const _id = data._id
             const player: Player = data.player
-            const playerUpdated = await this.playersService.update(_id, player)
+            await this.playersService.update(_id, player)
             await channel.ack(originalMessage)
-            return playerUpdated
         } catch (error) {
             this.logger.error(JSON.stringify(error))
             ackErrors.forEach(async ackError => {
@@ -118,15 +140,15 @@ export class PlayersController {
         }
     }
 
-    @MessagePattern("delete-player")
+    @EventPattern("delete-player")
     async remove(
         @Payload() _id: string,
         @Ctx() context: RmqContext
-    ): Promise<Player> {
+    ): Promise<void> {
         const channel = context.getChannelRef()
         const originalMessage = context.getMessage()
         try {
-            return this.playersService.remove(_id)
+            await this.playersService.remove(_id)
         } finally {
             await channel.ack(originalMessage)
         }

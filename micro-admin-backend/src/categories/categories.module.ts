@@ -13,7 +13,6 @@ import { CategorySchema } from "./interfaces/category.schema"
         PlayersModule
     ],
     controllers: [CategoriesController],
-    providers: [CategoriesService],
-    exports: [CategoriesService]
+    providers: [CategoriesService]
 })
 export class CategoriesModule {}

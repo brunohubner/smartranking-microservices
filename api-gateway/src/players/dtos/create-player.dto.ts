@@ -5,20 +5,20 @@ export class CreatePlayerDto {
     @ApiProperty()
     @IsString()
     @IsNotEmpty()
-    name: string
+    readonly name: string
 
     @ApiProperty()
     @IsEmail()
     @IsNotEmpty()
-    email: string
+    readonly email: string
 
     @ApiProperty()
     @IsPhoneNumber()
     @IsNotEmpty()
-    phoneNumber: string
+    readonly phoneNumber: string
 
     @ApiProperty()
     @IsString()
     @IsNotEmpty()
-    category_id: string
+    readonly category_id: string
 }

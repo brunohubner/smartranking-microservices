@@ -14,12 +14,6 @@ async function bootstrap() {
     app.useGlobalInterceptors(new TimeoutInterceptor())
     app.useGlobalFilters(new AllExceptionsFilter())
 
-    Date.prototype.toJSON = function (): any {
-        return momentTimezone(this)
-            .tz("America/Sao_Paulo")
-            .format("YYYY-MM-DD HH:mm:ss.SSS")
-    }
-
     const swaggerConfig = new DocumentBuilder()
         .setTitle("Smart Ranking API Gateway")
         .setDescription("The api for football players challengers.")

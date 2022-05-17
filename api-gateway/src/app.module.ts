@@ -12,7 +12,6 @@ import { ClientProxyProvider } from "./proxyrmq/client-proxy.provider"
         ChallengesModule,
         ProxyRMQModule
     ],
-    controllers: [],
     providers: [ClientProxyProvider]
 })
 export class AppModule {}

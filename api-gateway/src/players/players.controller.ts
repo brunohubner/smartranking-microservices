@@ -23,19 +23,39 @@ export class PlayersController {
     @Post()
     @UsePipes(ValidationPipe)
     async create(@Body() createPlayerDto: CreatePlayerDto): Promise<any> {
-        const _id = createPlayerDto.category_id
-        const category = await firstValueFrom(
-            this.clientProxyProvider.adminBackend.send(
-                "find-category-by-id",
-                _id
+        const [category, player] = await Promise.all([
+            firstValueFrom(
+                this.clientProxyProvider.adminBackend.send(
+                    "find-category-by-id",
+                    createPlayerDto.category_id
+                )
+            ),
+            firstValueFrom(
+                this.clientProxyProvider.adminBackend.send(
+                    "find-player-by-email-or-phone-number",
+                    createPlayerDto
+                )
             )
-        )
+        ])
+
         if (!category) {
             throw new BadRequestException(
-                `The category with ID ${_id} does not exists.`
+                `The category with ID ${createPlayerDto.category_id} does not exists.`
             )
         }
-        return this.clientProxyProvider.adminBackend.send(
+
+        if (player) {
+            for (const [key, value] of Object.entries(createPlayerDto)) {
+                if (player?.[key] === value) {
+                    throw new BadRequestException(
+                        `This player with ${key} ${value} already exists.`
+                    )
+                }
+            }
+            throw new BadRequestException(`Player already registered.`)
+        }
+
+        return this.clientProxyProvider.adminBackend.emit(
             "create-player",
             createPlayerDto
         )
@@ -87,14 +107,28 @@ export class PlayersController {
                 )
             }
         }
-        return this.clientProxyProvider.adminBackend.send("update-player", {
+        return this.clientProxyProvider.adminBackend.emit("update-player", {
             _id,
-            player: updatePlayerDto
+            player: {
+                name: updatePlayerDto?.name,
+                urlAvatarPlayer: updatePlayerDto?.urlAvatarPlayer,
+                category_id: updatePlayerDto?.category_id
+            }
         })
     }
 
     @Delete(":_id")
-    remove(@Param("_id") _id: string): Observable<any> {
-        return this.clientProxyProvider.adminBackend.send("delete-player", _id)
+    async remove(@Param("_id") _id: string): Promise<any> {
+        const player = await firstValueFrom(
+            this.clientProxyProvider.adminBackend.send("find-player-by-id", _id)
+        )
+
+        if (!player) {
+            throw new BadRequestException(
+                `The player with ID ${_id} does not exists.`
+            )
+        }
+
+        return this.clientProxyProvider.adminBackend.emit("delete-player", _id)
     }
 }

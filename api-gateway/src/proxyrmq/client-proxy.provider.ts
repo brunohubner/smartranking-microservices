@@ -12,19 +12,16 @@ export class ClientProxyProvider {
     readonly challenges: ClientProxy
 
     constructor() {
-        this.adminBackend = ClientProxyFactory.create({
-            transport: Transport.RMQ,
-            options: {
-                urls: [env.RABBITMQ_URL_CONNECTION],
-                queue: "admin-backend"
-            }
-        })
+        this.adminBackend = this.createProxyConnection("admin-backend")
+        this.challenges = this.createProxyConnection("challenges")
+    }
 
-        this.challenges = ClientProxyFactory.create({
+    private createProxyConnection(queueName: string): ClientProxy {
+        return ClientProxyFactory.create({
             transport: Transport.RMQ,
             options: {
                 urls: [env.RABBITMQ_URL_CONNECTION],
-                queue: "challenges"
+                queue: queueName
             }
         })
     }

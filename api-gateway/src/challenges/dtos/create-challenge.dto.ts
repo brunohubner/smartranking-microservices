@@ -6,6 +6,7 @@ import {
     IsNotEmpty
 } from "class-validator"
 import { ApiProperty } from "@nestjs/swagger"
+import { Player } from "src/players/interfaces/player.interface"
 
 export class CreateChallengeDto {
     @ApiProperty()

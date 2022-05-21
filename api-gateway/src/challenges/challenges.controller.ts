@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-extra-semi */
 import {
     BadRequestException,
     Body,
@@ -13,21 +14,28 @@ import {
     ValidationPipe
 } from "@nestjs/common"
 import { firstValueFrom } from "rxjs"
+import { Category } from "src/categories/interfaces/category.interface"
+import { Player } from "src/players/interfaces/player.interface"
 import { ClientProxyProvider } from "src/proxyrmq/client-proxy.provider"
-import { AddChallengeToMatchDto } from "./dtos/add-challenge-to-match.dto"
+import { AddMatchToChallengeDto } from "./dtos/add-match-to-challenge.dto"
 import { CreateChallengeDto } from "./dtos/create-challenge.dto"
 import { UpdateChallengeDto } from "./dtos/update-challenge.dto"
 import { ChallengeStatus } from "./interfaces/challenge-status.enum"
 import { Challenge } from "./interfaces/challenge.interface"
+import { Match } from "./interfaces/match.interface"
+import { ChallengeStatusValidationPipe } from "./pipes/challenge-status-validation.pipe"
 
-@Controller("challenges")
+@Controller("api/v1/challenges")
 export class ChallengesController {
-    constructor(private readonly clientProxyProvider: ClientProxyProvider) {}
+    constructor(private readonly clientProxyProvider: ClientProxyProvider) { }
 
     @Post()
     @UsePipes(ValidationPipe)
     async create(@Body() createChallengeDto: CreateChallengeDto): Promise<any> {
-        if (createChallengeDto.players[0] == createChallengeDto.players[1]) {
+        if (
+            createChallengeDto.players[0] ===
+            createChallengeDto.players[1]
+        ) {
             throw new BadRequestException(
                 "Inform players different from each other."
             )
@@ -42,20 +50,13 @@ export class ChallengesController {
             )
         }
 
-        createChallengeDto.players.forEach(player => {
-            if (player !== createChallengeDto.category_id) {
-                throw new BadRequestException(
-                    `The player with ID ${player} does not belong to the category with ID ${createChallengeDto.category_id}`
-                )
-            }
-        })
-
-        const [player1, player2] = await firstValueFrom(
+        const [player1, player2] = (await firstValueFrom(
             this.clientProxyProvider.adminBackend.send("find-many-players", [
                 createChallengeDto.players[0],
                 createChallengeDto.players[1]
             ])
-        )
+        )) as Player[]
+
         if (!player1) {
             throw new NotFoundException(
                 `The player with ID ${createChallengeDto.players[0]} does not exists.`
@@ -67,27 +68,46 @@ export class ChallengesController {
             )
         }
 
-        const challenge = {
-            ...createChallengeDto,
-            dateTimeRequest: new Date(),
-            status: ChallengeStatus.PENDING
+        ;[player1, player2].forEach(player => {
+            if (player.category_id !== createChallengeDto.category_id) {
+                throw new BadRequestException(
+                    `The player with ID ${player._id} does not belong to the category with ID ${createChallengeDto.category_id}`
+                )
+            }
+        })
+
+        const categoryExists = (await firstValueFrom(
+            this.clientProxyProvider.adminBackend.send(
+                "find-category-by-id",
+                createChallengeDto.category_id
+            )
+        )) as Category
+
+        if (!categoryExists) {
+            throw new NotFoundException(
+                `The category with ID ${createChallengeDto.category_id} does not exists.`
+            )
         }
-        return this.clientProxyProvider.challenges.send(
+
+        return this.clientProxyProvider.challenges.emit(
             "create-challenge",
-            challenge
+            createChallengeDto
         )
     }
 
     @Get()
     @UsePipes(ValidationPipe)
-    async find(@Query("player_id") player_id: string): Promise<any> {
+    async find(
+        @Query("player_id") player_id: string,
+        @Query("challenge_id") challenge_id: string
+    ): Promise<any> {
         if (player_id) {
-            const playerExists = await firstValueFrom(
+            const playerExists = (await firstValueFrom(
                 this.clientProxyProvider.adminBackend.send(
                     "find-player-by-id",
                     player_id
                 )
-            )
+            )) as Player
             if (!playerExists) {
                 throw new NotFoundException(
                     `The player with ID ${player_id} does not exists.`
@@ -96,6 +116,12 @@ export class ChallengesController {
             return this.clientProxyProvider.challenges.send(
                 "find-all-challenges-of-a-player",
                 player_id
+            )
+        }
+        if (challenge_id) {
+            return this.clientProxyProvider.challenges.send(
+                "find-challenge-by-id",
+                challenge_id
             )
         }
         return this.clientProxyProvider.challenges.send(
@@ -108,7 +134,8 @@ export class ChallengesController {
     @UsePipes(ValidationPipe)
     async update(
         @Param("_id") _id: string,
-        @Body() updateChallengeDto: UpdateChallengeDto
+        @Body(ChallengeStatusValidationPipe)
+        updateChallengeDto: UpdateChallengeDto
     ): Promise<any> {
         const challenge = (await firstValueFrom(
             this.clientProxyProvider.challenges.send(
@@ -128,10 +155,10 @@ export class ChallengesController {
         ) {
             throw new BadRequestException("Challenge already finished.")
         }
-        return this.clientProxyProvider.challenges.send(
-            "update-challenge",
-            updateChallengeDto
-        )
+        return this.clientProxyProvider.challenges.emit("update-challenge", {
+            _id,
+            challenge: updateChallengeDto
+        })
     }
 
     @Delete(":_id")
@@ -149,21 +176,32 @@ export class ChallengesController {
                 `The challenge with ID ${_id} do not exists.`
             )
         }
-        return this.clientProxyProvider.challenges.send("delete-challenge", "")
+        return this.clientProxyProvider.challenges.emit(
+            "delete-challenge",
+            challenge
+        )
     }
 
     @Post(":challenge_id/match")
     @UsePipes(ValidationPipe)
-    async addChallengeToMatch(
+    async addMatchToChallenge(
         @Param("challenge_id") challenge_id: string,
-        @Body() addChallengeToMatchDto: AddChallengeToMatchDto
+        @Body() addMatchToChallengeDto: AddMatchToChallengeDto
     ): Promise<any> {
-        const challenge = (await firstValueFrom(
-            this.clientProxyProvider.challenges.send(
-                "find-challenge-by-id",
-                challenge_id
-            )
-        )) as Challenge
+        const [challenge, winner] = await Promise.all([
+            firstValueFrom(
+                this.clientProxyProvider.challenges.send(
+                    "find-challenge-by-id",
+                    challenge_id
+                )
+            ) as Promise<Challenge>,
+            firstValueFrom(
+                this.clientProxyProvider.adminBackend.send(
+                    "find-player-by-id",
+                    addMatchToChallengeDto.winner
+                )
+            ) as Promise<Player>,
+        ])
 
         if (!challenge) {
             throw new NotFoundException(
@@ -183,18 +221,25 @@ export class ChallengesController {
             )
         }
 
-        const winnerIsAPlayer = challenge.players.find(
-            player => player._id === addChallengeToMatchDto.winner
-        )
+        const winnerIsAPlayer = challenge.players.find(player => {
+            const player_id = player as unknown as string
+            return winner._id === player_id
+        })
+
         if (!winnerIsAPlayer) {
             throw new BadRequestException(
                 "The winner is not part of the challenge."
             )
         }
 
-        return this.clientProxyProvider.challenges.send(
-            "add-challenge-to-match",
-            addChallengeToMatchDto
-        )
+        const match: Match = {
+            category_id: challenge.category_id,
+            winner,
+            challenge: challenge_id,
+            players: challenge.players,
+            result: addMatchToChallengeDto.result
+        }
+
+        return this.clientProxyProvider.challenges.emit("create-match", match)
     }
 }

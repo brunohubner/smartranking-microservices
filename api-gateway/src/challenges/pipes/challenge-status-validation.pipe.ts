@@ -11,7 +11,7 @@ export class ChallengeStatusValidationPipe implements PipeTransform {
     transform(value: any) {
         const status = value?.status?.toUpperCase() || ""
         if (!this.validateStatus(status)) {
-            throw new BadRequestException(`${status} is a inválid status.`)
+            throw new BadRequestException(`${status} is a invalid status.`)
         }
         return value
     }

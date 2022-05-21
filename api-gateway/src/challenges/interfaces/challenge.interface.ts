@@ -8,7 +8,7 @@ export interface Challenge {
     dateTimeRequest: Date
     dateTimeResponse: Date
     challenger: Player
-    category: string
+    category_id: string
     players: Player[]
-    match: Match
+    match?: Match
 }

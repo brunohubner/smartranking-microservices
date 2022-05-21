@@ -1,4 +1,100 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from "@nestjs/common"
+import { RpcException } from "@nestjs/microservices"
+import { InjectModel } from "@nestjs/mongoose"
+import { Model } from "mongoose"
+import { ChallengeStatus } from "./interfaces/challenge-status.enum"
+import { Challenge } from "./interfaces/challenge.interface"
 
 @Injectable()
-export class ChallengesService {}
+export class ChallengesService {
+    private readonly logger = new Logger(ChallengesService.name)
+
+    constructor(
+        @InjectModel("Challenge")
+        private readonly challengeModel: Model<Challenge>
+    ) {}
+
+    async create(challenge: Challenge): Promise<void> {
+        try {
+            challenge.dateTimeRequest = new Date()
+            challenge.status = ChallengeStatus.PENDING
+            await new this.challengeModel(challenge).save()
+        } catch (error) {
+            this.logger.error(JSON.stringify(error))
+            throw new RpcException(error.message)
+        }
+    }
+
+    async findAll(): Promise<Challenge[]> {
+        try {
+            return this.challengeModel.find()
+        } catch (error) {
+            this.logger.error(JSON.stringify(error))
+            throw new RpcException(error.message)
+        }
+    }
+
+    async findById(_id: string): Promise<Challenge> {
+        try {
+            const challenge = await this.challengeModel.findById(_id)
+            if (!challenge) {
+                throw new RpcException(
+                    `The challenge with ID ${_id} does not exists.`
+                )
+            }
+            return challenge
+        } catch (error) {
+            this.logger.error(JSON.stringify(error))
+            throw new RpcException(error.message)
+        }
+    }
+
+    async findChallengesOfAPlayer(player_id: any): Promise<Challenge[]> {
+        try {
+            return this.challengeModel.find().where("players").in(player_id)
+        } catch (error) {
+            this.logger.error(JSON.stringify(error))
+            throw new RpcException(error.message)
+        }
+    }
+
+    async update(_id: string, challenge: Challenge): Promise<void> {
+        try {
+            challenge.dateTimeResponse = new Date()
+            await this.challengeModel.findByIdAndUpdate(_id, challenge)
+        } catch (error) {
+            this.logger.error(JSON.stringify(error))
+            throw new RpcException(error.message)
+        }
+    }
+
+    async addMatchToChallenge(
+        match_id: string,
+        challenge: Challenge
+    ): Promise<void> {
+        try {
+            challenge.status = ChallengeStatus.ACCOMPLISHED
+            challenge.match = match_id
+            await this.challengeModel.findByIdAndUpdate(
+                challenge._id,
+                challenge
+            )
+        } catch (error) {
+            this.logger.error(JSON.stringify(error))
+            throw new RpcException(error.message)
+        }
+    }
+
+    async remove(challenge: Challenge): Promise<void> {
+        try {
+            challenge.status = ChallengeStatus.CALLED_OFF
+            await this.challengeModel.findByIdAndUpdate(
+                challenge._id,
+                challenge
+            )
+        } catch (error) {
+            this.logger.error(JSON.stringify(error))
+            throw new RpcException(error.message)
+        }
+    }
+}

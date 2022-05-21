@@ -1,4 +1,8 @@
-import { Module } from '@nestjs/common';
+import { Module } from "@nestjs/common"
+import { ClientProxyProvider } from "./client-proxy.provider"
 
-@Module({})
-export class ProxyrmqModule {}
+@Module({
+    providers: [ClientProxyProvider],
+    exports: [ClientProxyProvider]
+})
+export class ProxyRMQModule {}

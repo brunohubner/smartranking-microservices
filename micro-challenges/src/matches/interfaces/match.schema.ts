@@ -11,7 +11,7 @@ export const MatchSchema = new mongoose.Schema(
             }
         ],
         winner: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: mongoose.Schema.Types.ObjectId
         },
         result: [
             {

@@ -8,7 +8,7 @@ import { MatchesService } from "./matches.service"
 @Module({
     imports: [
         MongooseModule.forFeature([{ name: "Match", schema: MatchSchema }]),
-		ChallengesModule
+        ChallengesModule
     ],
     controllers: [MatchesController],
     providers: [MatchesService]

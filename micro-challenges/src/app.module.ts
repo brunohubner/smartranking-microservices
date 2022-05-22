@@ -3,7 +3,7 @@ import { ChallengesModule } from "./challenges/challenges.module"
 import { MatchesModule } from "./matches/matches.module"
 import { MongooseModule } from "@nestjs/mongoose"
 import { env } from "./common/config/env"
-import { ProxyRMQModule } from './proxyrmq/proxyrmq.module';
+import { ProxyRMQModule } from "./proxyrmq/proxyrmq.module"
 
 @Module({
     imports: [

@@ -27,15 +27,12 @@ import { ChallengeStatusValidationPipe } from "./pipes/challenge-status-validati
 
 @Controller("api/v1/challenges")
 export class ChallengesController {
-    constructor(private readonly clientProxyProvider: ClientProxyProvider) { }
+    constructor(private readonly clientProxyProvider: ClientProxyProvider) {}
 
     @Post()
     @UsePipes(ValidationPipe)
     async create(@Body() createChallengeDto: CreateChallengeDto): Promise<any> {
-        if (
-            createChallengeDto.players[0] ===
-            createChallengeDto.players[1]
-        ) {
+        if (createChallengeDto.players[0] === createChallengeDto.players[1]) {
             throw new BadRequestException(
                 "Inform players different from each other."
             )
@@ -200,7 +197,7 @@ export class ChallengesController {
                     "find-player-by-id",
                     addMatchToChallengeDto.winner
                 )
-            ) as Promise<Player>,
+            ) as Promise<Player>
         ])
 
         if (!challenge) {

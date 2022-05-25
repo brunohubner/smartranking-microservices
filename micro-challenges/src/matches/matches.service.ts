@@ -3,6 +3,7 @@ import { RpcException } from "@nestjs/microservices"
 import { InjectModel } from "@nestjs/mongoose"
 import { Model } from "mongoose"
 import { ChallengesService } from "src/challenges/challenges.service"
+import { ClientProxyProvider } from "src/proxyrmq/client-proxy.provider"
 import { Match } from "./interfaces/match.interface"
 
 @Injectable()
@@ -11,7 +12,8 @@ export class MatchesService {
 
     constructor(
         @InjectModel("Match") private readonly matchModel: Model<Match>,
-        private readonly challengesService: ChallengesService
+        private readonly challengesService: ChallengesService,
+        private readonly clientProxyProvider: ClientProxyProvider
     ) {}
 
     async create(match: Match): Promise<void> {
@@ -24,6 +26,10 @@ export class MatchesService {
                 matchCreated._id.toString(),
                 challenge
             )
+            this.clientProxyProvider.rankings.emit("process-match", {
+                match_id: matchCreated._id.toString(),
+                match: matchCreated
+            })
         } catch (error) {
             this.logger.error(JSON.stringify(error))
             throw new RpcException(error.message)

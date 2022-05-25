@@ -3,6 +3,7 @@ import { NestFactory } from "@nestjs/core"
 import { MicroserviceOptions, Transport } from "@nestjs/microservices"
 import { AppModule } from "./app.module"
 import { env } from "./common/config/env"
+import * as momentTimezone from "moment-timezone"
 
 const logger = new Logger("Main")
 
@@ -18,6 +19,13 @@ async function bootstrap() {
             }
         }
     )
+
+    Date.prototype.toJSON = function (): any {
+        return momentTimezone(this)
+            .tz("America/Sao_Paulo")
+            .format("YYYY-MM-DD HH:mm:ss.SSS")
+    }
+
     await app
         .listen()
         .then(() => logger.log('Microservice "admin-backend" is listening...'))

@@ -79,6 +79,29 @@ export class ChallengesController {
         }
     }
 
+    @MessagePattern("find-accomplished")
+    async findAccomplished(
+        @Payload() data: any,
+        @Ctx() context: RmqContext
+    ): Promise<Challenge[]> {
+        const channel = context.getChannelRef()
+        const originalMessage = context.getMessage()
+        try {
+            const category_id: string = data.category_id
+            const date: string = data.date
+
+            if (date) {
+                return await this.challengeService.findAccomplishedByDate(
+                    category_id,
+                    date
+                )
+            }
+            return await this.challengeService.findAllAccomplished(category_id)
+        } finally {
+            await channel.ack(originalMessage)
+        }
+    }
+
     @EventPattern("update-challenge")
     async update(
         @Payload() data: any,

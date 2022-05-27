@@ -4,6 +4,7 @@ import { InjectModel } from "@nestjs/mongoose"
 import { Model } from "mongoose"
 import { ChallengeStatus } from "./interfaces/challenge-status.enum"
 import { Challenge } from "./interfaces/challenge.interface"
+import * as momentTimezone from "moment-timezone"
 
 @Injectable()
 export class ChallengesService {
@@ -52,6 +53,40 @@ export class ChallengesService {
     async findChallengesOfAPlayer(player_id: any): Promise<Challenge[]> {
         try {
             return this.challengeModel.find().where("players").in(player_id)
+        } catch (error) {
+            this.logger.error(JSON.stringify(error))
+            throw new RpcException(error.message)
+        }
+    }
+
+    async findAllAccomplished(category_id: string): Promise<Challenge[]> {
+        try {
+            return this.challengeModel
+                .find()
+                .where("category_id")
+                .equals(category_id)
+                .where("status")
+                .equals(ChallengeStatus.ACCOMPLISHED)
+        } catch (error) {
+            this.logger.error(JSON.stringify(error))
+            throw new RpcException(error.message)
+        }
+    }
+
+    async findAccomplishedByDate(
+        category_id: string,
+        date: string
+    ): Promise<Challenge[]> {
+        try {
+            const newDate = new Date(`${date} 23:59:59`).getTime()
+            return this.challengeModel
+                .find()
+                .where("category_id")
+                .equals(category_id)
+                .where("status")
+                .equals(ChallengeStatus.ACCOMPLISHED)
+                .where("dateTimeChallenge")
+                .lte(newDate)
         } catch (error) {
             this.logger.error(JSON.stringify(error))
             throw new RpcException(error.message)

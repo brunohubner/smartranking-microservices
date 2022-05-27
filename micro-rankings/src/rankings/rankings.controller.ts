@@ -2,11 +2,13 @@ import { Controller, Logger } from "@nestjs/common"
 import {
     Ctx,
     EventPattern,
+    MessagePattern,
     Payload,
     RmqContext,
     RpcException
 } from "@nestjs/microservices"
 import { Match } from "./interfaces/match.interface"
+import { RankingResponse } from "./interfaces/ranking-response.interface"
 import { RankingsService } from "./rankings.service"
 
 const ackErrors: string[] = ["E11000", "required", "must be"]
@@ -38,6 +40,23 @@ export class RankingsController {
                 }
             })
             throw new RpcException(error.message)
+        }
+    }
+
+    @MessagePattern("find-by-category-id")
+    async findByCategoryId(
+        @Payload() data: any,
+        @Ctx() context: RmqContext
+    ): Promise<RankingResponse[]> {
+        const channel = context.getChannelRef()
+        const originalMessage = context.getMessage()
+
+        try {
+            const category_id: string = data.category_id
+            const date: string = data.date
+            return this.rankingsService.findByCategoryId(category_id, date)
+        } finally {
+            await channel.ack(originalMessage)
         }
     }
 }

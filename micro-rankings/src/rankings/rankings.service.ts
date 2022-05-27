@@ -8,6 +8,10 @@ import { Category } from "./interfaces/category.interface"
 import { EventName } from "./interfaces/event-name.enum"
 import { Match } from "./interfaces/match.interface"
 import { Ranking } from "./interfaces/rankings.schema"
+import * as momentTimezone from "moment-timezone"
+import { Challenge } from "./interfaces/challenge.interface"
+import * as _ from "lodash"
+import { RankingResponse } from "./interfaces/ranking-response.interface"
 
 @Injectable()
 export class RankingsService {
@@ -55,6 +59,64 @@ export class RankingsService {
                     }
 
                     await new this.rankingModel(ranking).save()
+                })
+            )
+        } catch (error) {
+            this.logger.error(JSON.stringify(error))
+            throw new RpcException(error.message)
+        }
+    }
+
+    async findByCategoryId(
+        category_id: string,
+        date: string
+    ): Promise<RankingResponse[]> {
+        try {
+            if (!date) {
+                date = momentTimezone()
+                    .tz("America/Sao_Paulo")
+                    .format("YYYY-MM-DD")
+            }
+
+            const rankings = await this.rankingModel
+                .find()
+                .where("category_id")
+                .equals(category_id)
+
+            const challenges: Challenge[] = await firstValueFrom(
+                this.clientProxyProvider.challenges.send("find-accomplished", {
+                    category_id,
+                    date
+                })
+            )
+
+            _.remove(rankings, item => {
+                return !challenges.find(
+                    challenge => challenge._id === item.challenge_id.toString()
+                )
+            })
+
+            const result = _(rankings)
+                .groupBy("player_id")
+                .map((items, index) => ({
+                    player: index,
+                    matchHistory: _.countBy(items, "event"),
+                    score: _.sumBy(items, "score")
+                }))
+                .value()
+
+            const sortedResult = _.orderBy(result, "score", "desc")
+
+            return sortedResult.map(
+                ({ player, matchHistory, score }, index) => ({
+                    position: index + 1,
+                    player,
+                    score,
+                    matchHistory: {
+                        victories: matchHistory.VICTORY || 0,
+                        defeats: matchHistory.DEFEAT || 0,
+                        draws: matchHistory.DRAW || 0
+                    }
                 })
             )
         } catch (error) {

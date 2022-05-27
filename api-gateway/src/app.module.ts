@@ -4,13 +4,15 @@ import { PlayersModule } from "./players/players.module"
 import { ChallengesModule } from "./challenges/challenges.module"
 import { ProxyRMQModule } from "./proxyrmq/proxyrmq.module"
 import { ClientProxyProvider } from "./proxyrmq/client-proxy.provider"
+import { RankingsModule } from "./rankings/rankings.module"
 
 @Module({
     imports: [
         CategoriesModule,
         PlayersModule,
         ChallengesModule,
-        ProxyRMQModule
+        ProxyRMQModule,
+        RankingsModule
     ],
     providers: [ClientProxyProvider]
 })

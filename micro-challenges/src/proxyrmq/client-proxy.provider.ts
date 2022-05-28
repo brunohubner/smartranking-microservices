@@ -9,9 +9,11 @@ import { env } from "src/common/config/env"
 @Injectable()
 export class ClientProxyProvider {
     readonly rankings: ClientProxy
+    readonly notifications: ClientProxy
 
     constructor() {
         this.rankings = this.createProxyConnection("rankings")
+        this.notifications = this.createProxyConnection("notifications")
     }
 
     private createProxyConnection(queueName: string): ClientProxy {

@@ -5,6 +5,8 @@ import { Model } from "mongoose"
 import { ChallengeStatus } from "./interfaces/challenge-status.enum"
 import { Challenge } from "./interfaces/challenge.interface"
 import * as momentTimezone from "moment-timezone"
+import { ClientProxyProvider } from "src/proxyrmq/client-proxy.provider"
+import { firstValueFrom } from "rxjs"
 
 @Injectable()
 export class ChallengesService {
@@ -12,14 +14,18 @@ export class ChallengesService {
 
     constructor(
         @InjectModel("Challenge")
-        private readonly challengeModel: Model<Challenge>
+        private readonly challengeModel: Model<Challenge>,
+        private readonly clientProxyProvider: ClientProxyProvider
     ) {}
 
     async create(challenge: Challenge): Promise<void> {
         try {
             challenge.dateTimeRequest = new Date()
             challenge.status = ChallengeStatus.PENDING
-            await new this.challengeModel(challenge).save()
+            
+            const challengeCreated = new this.challengeModel(challenge)
+            await challengeCreated.save()
+            await firstValueFrom(this.clientProxyProvider.notifications.emit("new-challenge", challengeCreated))
         } catch (error) {
             this.logger.error(JSON.stringify(error))
             throw new RpcException(error.message)

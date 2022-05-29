@@ -1,11 +1,11 @@
 import { Injectable, Logger } from "@nestjs/common"
 import { RpcException } from "@nestjs/microservices"
+import * as path from "path"
 import { firstValueFrom } from "rxjs"
 import { Challenge } from "src/interfaces/challenge.interface"
 import { Player } from "src/interfaces/player.interface"
 import { MailProvider } from "src/mail/mail.provider"
 import { ClientProxyProvider } from "src/proxyrmq/client-proxy.provider"
-import path from "path"
 
 @Injectable()
 export class NotificationsService {
@@ -21,6 +21,7 @@ export class NotificationsService {
             const adversary_id = challenge.players.find(
                 player => player !== challenge.challenger
             )
+
             const [challenger, adversary]: Player[] = await firstValueFrom(
                 this.clientProxyProvider.adminBackend.send(
                     "find-many-players",
@@ -30,7 +31,7 @@ export class NotificationsService {
 
             const filePath = path.resolve(
                 __dirname,
-                "../views/new-handlebars.hbs"
+                "../../views/new-challenge.hbs"
             )
 
             await this.mailProvider.sendMail({
@@ -42,7 +43,6 @@ export class NotificationsService {
                     name: adversary.name,
                     email: adversary.email
                 },
-                replyTo: challenger.name,
                 subject: "Smart Ranking - New Challenge",
                 templateData: {
                     filePath,

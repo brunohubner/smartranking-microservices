@@ -1,8 +1,8 @@
 import { Module } from "@nestjs/common"
-import { HandlebarsParser } from "./handlebars-parser"
+import { HandlebarsParserProvider } from "./handlebars-parser.provider"
 
 @Module({
-    providers: [HandlebarsParser],
-    exports: [HandlebarsParser]
+    providers: [HandlebarsParserProvider],
+    exports: [HandlebarsParserProvider]
 })
 export class HandlebarsParserModule {}

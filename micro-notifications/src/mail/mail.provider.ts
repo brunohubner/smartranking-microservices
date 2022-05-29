@@ -1,19 +1,20 @@
-import { Injectable } from "@nestjs/common"
 import { env } from "src/common/config/env"
-import sgMail from "@sendgrid/mail"
+import * as sgMail from "@sendgrid/mail"
 import { SendMailData } from "./interfaces/send-mail-data.interface"
-import { HandlebarsParser } from "src/handlebars/handlebars-parser"
+import { HandlebarsParserProvider } from "../handlebars/handlebars-parser.provider"
+import { Injectable } from "@nestjs/common"
 
 @Injectable()
 export class MailProvider {
-    constructor(private readonly handlebarsParser: HandlebarsParser) {}
+    constructor(
+        private readonly handlebarsParserProvider: HandlebarsParserProvider
+    ) {}
 
     async sendMail({
         from,
         to,
-        replyTo,
         subject,
-        templateData,
+        templateData
     }: SendMailData): Promise<void> {
         try {
             sgMail.setApiKey(env.SENDGRID_API_KEY)
@@ -21,9 +22,8 @@ export class MailProvider {
             await sgMail.send({
                 from: `${from.name} <${env.SENDGRID_EMAIL}>`,
                 to: to.email,
-                replyTo,
                 subject,
-                html: await this.handlebarsParser.parse(templateData)
+                html: await this.handlebarsParserProvider.parse(templateData)
             })
         } catch (error) {
             throw new Error("SendGrid error:\n" + error)

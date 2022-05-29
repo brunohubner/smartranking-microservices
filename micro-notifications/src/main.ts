@@ -21,6 +21,6 @@ async function bootstrap() {
 
     await app
         .listen()
-        .then(() => logger.log('Microservice "challenges" is listening...'))
+        .then(() => logger.log('Microservice "notifications" is listening...'))
 }
 bootstrap()

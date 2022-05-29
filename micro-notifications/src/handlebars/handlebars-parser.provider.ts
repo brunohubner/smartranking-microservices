@@ -1,10 +1,10 @@
-import { Injectable } from "@nestjs/common"
 import { HandlebarsParserTemplate } from "./interfaces/handlebars-parser-template.interface"
 import handlebars from "handlebars"
-import fs from "fs"
+import * as fs from "fs"
+import { Injectable } from "@nestjs/common"
 
 @Injectable()
-export class HandlebarsParser {
+export class HandlebarsParserProvider {
     async parse({
         filePath,
         variables

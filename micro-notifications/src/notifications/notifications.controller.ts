@@ -15,18 +15,18 @@ const ackErrors: string[] = []
 export class NotificationsController {
     private readonly logger = new Logger(NotificationsController.name)
 
-    constructor(private readonly NotificationsService: NotificationsService) {}
+    constructor(private readonly notificationsService: NotificationsService) {}
 
     @EventPattern("new-challenge")
     async create(
-        @Payload() challege: Challenge,
+        @Payload() challenge: Challenge,
         @Ctx() context: RmqContext
     ): Promise<void> {
         const channel = context.getChannelRef()
         const originalMessage = context.getMessage()
 
         try {
-            await this.NotificationsService.sendMailToAdversary(challege)
+            await this.notificationsService.sendMailToAdversary(challenge)
             await channel.ack(originalMessage)
         } catch (error) {
             this.logger.error(JSON.stringify(error))

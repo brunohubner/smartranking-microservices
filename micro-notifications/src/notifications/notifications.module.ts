@@ -1,14 +1,12 @@
 import { Module } from "@nestjs/common"
-import { HandlebarsParser } from "src/handlebars/handlebars-parser"
-import { HandlebarsParserModule } from "src/handlebars/handlebars.module"
-import { MailProvider } from "src/mail/mail.provider"
-import { ClientProxyProvider } from "src/proxyrmq/client-proxy.provider"
+import { MailModule } from "src/mail/mail.module"
+import { ProxyRMQModule } from "src/proxyrmq/proxyrmq.module"
 import { NotificationsController } from "./notifications.controller"
 import { NotificationsService } from "./notifications.service"
 
 @Module({
     controllers: [NotificationsController],
     providers: [NotificationsService],
-    imports: [MailProvider, ClientProxyProvider]
+    imports: [MailModule, ProxyRMQModule]
 })
 export class NotificationsModule {}

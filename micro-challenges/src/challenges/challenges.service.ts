@@ -22,10 +22,15 @@ export class ChallengesService {
         try {
             challenge.dateTimeRequest = new Date()
             challenge.status = ChallengeStatus.PENDING
-            
+
             const challengeCreated = new this.challengeModel(challenge)
             await challengeCreated.save()
-            await firstValueFrom(this.clientProxyProvider.notifications.emit("new-challenge", challengeCreated))
+            await firstValueFrom(
+                this.clientProxyProvider.notifications.emit(
+                    "new-challenge",
+                    challengeCreated
+                )
+            )
         } catch (error) {
             this.logger.error(JSON.stringify(error))
             throw new RpcException(error.message)

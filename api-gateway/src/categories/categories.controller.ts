@@ -1,5 +1,4 @@
 import {
-    BadRequestException,
     Body,
     Controller,
     Get,
@@ -9,60 +8,31 @@ import {
     UsePipes,
     ValidationPipe
 } from "@nestjs/common"
-import { firstValueFrom, Observable } from "rxjs"
-import { ClientProxyProvider } from "src/proxyrmq/client-proxy.provider"
+
+import { CategoriesService } from "./categories.service"
 import { CreateCategoryDto } from "./dtos/create-category.dto"
 import { UpdateCategoryDto } from "./dtos/update-category.dto"
-import { Category } from "./interfaces/category.interface"
 
 @Controller("api/v1/categories")
 export class CategoriesController {
-    constructor(private readonly clientProxyProvider: ClientProxyProvider) {}
+    constructor(private readonly categoriesService: CategoriesService) {}
 
     @Post()
     @UsePipes(ValidationPipe)
-    async create(@Body() createCategoryDto: CreateCategoryDto): Promise<any> {
-        let category: Category
-
-        try {
-            category = await firstValueFrom(
-                this.clientProxyProvider.adminBackend.send(
-                    "find-category-by-name",
-                    createCategoryDto.name
-                )
-            )
-        } catch {
-            //
-        }
-
-        if (category) {
-            throw new BadRequestException(
-                `The category with name ${createCategoryDto.name} already exists.`
-            )
-        }
-
-        return this.clientProxyProvider.adminBackend.emit(
-            "create-category",
-            createCategoryDto
-        )
+    async create(@Body() createCategoryDto: CreateCategoryDto): Promise<void> {
+        return this.categoriesService.create(createCategoryDto)
     }
 
     @Get()
     @UsePipes(ValidationPipe)
-    findAll(): Observable<any[]> {
-        return this.clientProxyProvider.adminBackend.send(
-            "find-all-categories",
-            ""
-        )
+    findAll(): Promise<any[]> {
+        return this.categoriesService.findAll()
     }
 
     @Get(":_id")
     @UsePipes(ValidationPipe)
-    findById(@Param("_id") _id: string): Observable<any> {
-        return this.clientProxyProvider.adminBackend.send(
-            "find-category-by-id",
-            _id
-        )
+    findById(@Param("_id") _id: string): Promise<any> {
+        return this.categoriesService.findById(_id)
     }
 
     @Patch(":_id")
@@ -71,21 +41,6 @@ export class CategoriesController {
         @Param("_id") _id: string,
         @Body() updateCategoryDto: UpdateCategoryDto
     ): Promise<any> {
-        const category = await firstValueFrom(
-            this.clientProxyProvider.adminBackend.send(
-                "find-category-by-id",
-                _id
-            )
-        )
-        if (category) {
-            throw new BadRequestException(
-                `The category with ID ${_id} does not exists.`
-            )
-        }
-
-        return this.clientProxyProvider.adminBackend.emit("update-category", {
-            _id,
-            category: updateCategoryDto
-        })
+        return this.categoriesService.update(_id, updateCategoryDto)
     }
 }
